@@ -5,6 +5,7 @@ import de.plocki.commands.Embed;
 import de.plocki.commands.SetupVerify;
 import de.plocki.commands.StatusEmbed;
 import de.plocki.util.Hooks;
+import de.plocki.util.Status;
 import de.plocki.util.StatusManager;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
@@ -86,49 +87,63 @@ public class Main {
                         } else {
                             try {
                                 long now = System.currentTimeMillis();
-                                status = address.isReachable(100);
+                                status = address.isReachable(60);
                                 ms = System.currentTimeMillis() - now;
                                 if(ms > 55) {
                                     orange = true;
+                                }
+                                if(ms > 500) {
+                                    status = false;
                                 }
                             } catch (IOException e) {
                                 throw new RuntimeException(e);
                             }
                         }
 
+                        boolean edit = false;
+
                         EmbedBuilder builder = new EmbedBuilder();
                         builder.setTitle(manager.getName(id));
-                        String e;
-                        if(orange) {
+                        String e = "ERROR";
+                        if(orange && !manager.getStatus(id).equals(Status.ORANGE)) {
                             builder.setColor(Color.ORANGE);
                             e = jda.getEmojisByName("unstable_connection", true).get(0).getFormatted();
                             RichCustomEmoji e2 = jda.getEmojisByName("interrupted_connection", true).get(0);
                             e = e + " " + e2.getFormatted();
                             builder.setDescription("Unstable Connection (high ping)");
+                            manager.setLastStatus(id, true);
+                            manager.setStatus(id, Status.ORANGE);
+                            edit = true;
                         } else if(status) {
                             manager.setLastStatus(id, true);
-                            if(manager.checkLastStatus(id)) {
+                            if(manager.checkLastStatus(id) && !manager.getStatus(id).equals(Status.GREEN)) {
                                 builder.setColor(Color.GREEN);
                                 e = jda.getEmojisByName("good_connection", true).get(0).getFormatted();
                                 RichCustomEmoji e2 = jda.getEmojisByName("available_connection", true).get(0);
                                 e = e + " " + e2.getFormatted();
                                 builder.setDescription("Available Connection");
-                            } else {
+                                manager.setStatus(id, Status.GREEN);
+                                edit = true;
+                            } else if(!manager.checkLastStatus(id) && !manager.getStatus(id).equals(Status.ORANGE)) {
                                 builder.setColor(Color.ORANGE);
                                 e = jda.getEmojisByName("unstable_connection", true).get(0).getFormatted();
                                 RichCustomEmoji e2 = jda.getEmojisByName("interrupted_connection", true).get(0);
                                 e = e + " " + e2.getFormatted();
                                 builder.setDescription("Unstable Connection");
+                                manager.setStatus(id, Status.ORANGE);
+                                edit = true;
                             }
                         } else {
                             manager.setLastStatus(id, false);
-                            if(manager.checkLastStatus(id)) {
+                            if(manager.checkLastStatus(id) && !manager.getStatus(id).equals(Status.ORANGE)) {
                                 builder.setColor(Color.ORANGE);
                                 e = jda.getEmojisByName("unstable_connection", true).get(0).getFormatted();
                                 RichCustomEmoji e2 = jda.getEmojisByName("interrupted_connection", true).get(0);
                                 e = e + " " + e2.getFormatted();
                                 builder.setDescription("Unstable Connection");
-                            } else {
+                                manager.setStatus(id, Status.ORANGE);
+                                edit = true;
+                            } else if(!manager.checkLastStatus(id) && !manager.getStatus(id).equals(Status.RED)) {
                                 builder.setColor(Color.RED);
                                 try {
                                     RichCustomEmoji emoji = jda.getEmojisByName("bad_connection", true).get(0);
@@ -140,18 +155,28 @@ public class Main {
                                 RichCustomEmoji e2 = jda.getEmojisByName("no_connection", true).get(0);
                                 e = e + " " + e2.getFormatted();
                                 builder.setDescription("No Connection " + jda.getEmojisByName("disconnected", true).get(0).getFormatted());
+                                edit = true;
+                                manager.setStatus(id, Status.RED);
                             }
                         }
-                        builder.addField("Status", e, true);
-                        builder.addField("Ping", ms + "ms", true);
-                        builder.setFooter("Last Updated: " + new Date(System.currentTimeMillis()));
 
-                        assert channel != null;
-                        channel.editMessageEmbedsById(id, builder.build()).queue();
+                        if(edit) {
+                            builder.addField("Status", e, true);
+                            builder.addField("Ping", ms + "ms", true);
+                            builder.setFooter("Last Updated: " + new Date(System.currentTimeMillis()));
+                            assert channel != null;
+                            channel.editMessageEmbedsById(id, builder.build()).queue();
+                        }
+
+                        try {
+                            Thread.sleep(1500);
+                        } catch (InterruptedException ex) {
+                            throw new RuntimeException(ex);
+                        }
                     }
                 }
                 try {
-                    sleep(1500);
+                    sleep(3000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

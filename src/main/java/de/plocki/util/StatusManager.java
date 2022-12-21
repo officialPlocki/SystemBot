@@ -24,9 +24,18 @@ public class StatusManager {
         List<Long> list = builder.getYaml().getLongList("statusEmbeds");
         list.add(messageID);
         builder.getYaml().set("statusEmbeds", list);
+        builder.getYaml().set("statusEmbedStatus." + messageID, Status.ORANGE.name());
         builder.save();
         new Hooks().toFile("statusEmbed." + messageID, address);
         new Hooks().toFile("statusEmbedName." + messageID, name);
+    }
+
+    public void setStatus(long messageID, Status status) {
+        new Hooks().toFile("statusEmbedStatus." + messageID, status.name());
+    }
+
+    public Status getStatus(long messageID) {
+        return Status.valueOf((String) new Hooks().fromFile("statusEmbedStatus." + messageID));
     }
 
     public String getAddress(long messageID) {
