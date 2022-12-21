@@ -55,7 +55,7 @@ public class Main {
 
         new Thread(() -> {
             try {
-                sleep(10000);
+                sleep(3000);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
@@ -71,7 +71,6 @@ public class Main {
                 List<Long> ids = manager.getStatusEmbeds();
                 if(ids.size() > 0) {
                     for(Long id : ids) {
-
                         InetAddress address;
                         try {
                             address = InetAddress.getByName(manager.getAddress(id));
@@ -79,6 +78,7 @@ public class Main {
                             address = null;
                         }
                         boolean status;
+                        boolean orange = false;
                         long ms;
                         if(address == null) {
                             ms = 1000;
@@ -86,8 +86,11 @@ public class Main {
                         } else {
                             try {
                                 long now = System.currentTimeMillis();
-                                status = address.isReachable(500);
+                                status = address.isReachable(100);
                                 ms = System.currentTimeMillis() - now;
+                                if(ms > 55) {
+                                    orange = true;
+                                }
                             } catch (IOException e) {
                                 throw new RuntimeException(e);
                             }
@@ -96,7 +99,13 @@ public class Main {
                         EmbedBuilder builder = new EmbedBuilder();
                         builder.setTitle(manager.getName(id));
                         String e;
-                        if(status) {
+                        if(orange) {
+                            builder.setColor(Color.ORANGE);
+                            e = jda.getEmojisByName("unstable_connection", true).get(0).getFormatted();
+                            RichCustomEmoji e2 = jda.getEmojisByName("interrupted_connection", true).get(0);
+                            e = e + " " + e2.getFormatted();
+                            builder.setDescription("Unstable Connection (high ping)");
+                        } else if(status) {
                             manager.setLastStatus(id, true);
                             if(manager.checkLastStatus(id)) {
                                 builder.setColor(Color.GREEN);
@@ -122,7 +131,6 @@ public class Main {
                             } else {
                                 builder.setColor(Color.RED);
                                 try {
-                                    System.out.println(jda.getEmojisByName("bad_connection", true));
                                     RichCustomEmoji emoji = jda.getEmojisByName("bad_connection", true).get(0);
                                     e = emoji.getFormatted();
                                 } catch (NullPointerException ex) {
@@ -138,13 +146,12 @@ public class Main {
                         builder.addField("Ping", ms + "ms", true);
                         builder.setFooter("Last Updated: " + new Date(System.currentTimeMillis()));
 
-
                         assert channel != null;
                         channel.editMessageEmbedsById(id, builder.build()).queue();
                     }
                 }
                 try {
-                    sleep(5000);
+                    sleep(1500);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
