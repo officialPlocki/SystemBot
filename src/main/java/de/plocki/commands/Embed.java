@@ -5,7 +5,6 @@ import de.plocki.util.Hooks;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.UserSnowflake;
-import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.entities.emoji.RichCustomEmoji;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -22,7 +21,7 @@ import java.awt.*;
 import java.util.*;
 import java.util.List;
 
-public class EmbedCommand extends ListenerAdapter {
+public class Embed extends ListenerAdapter {
 
     @Override
     public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
@@ -57,8 +56,6 @@ public class EmbedCommand extends ListenerAdapter {
 
             HashMap<String, String> replacement = new HashMap<>();
 
-            List<String> emoji = new ArrayList<>();
-
             for (String se : msg[0].split("\n")) {
                 for(String s : se.split(" ")) {
                     if(s.startsWith(":")) {
@@ -79,9 +76,8 @@ public class EmbedCommand extends ListenerAdapter {
             builder.setTitle(Objects.requireNonNull(event.getValue("title")).getAsString());
 
             builder.setFooter("Powered by ClusterNode.net", "https://cdn.clusternode.net/image/s/clusternode_net.png");
-            builder.setColor(Color.cyan);
-            builder.setAuthor("ELIZON.");
-            builder.setThumbnail((String) new Hooks().fromFile("thumbnailURL"));
+            builder.setColor(Color.yellow);
+            builder.setAuthor((String) new Hooks().fromFile("author"));
 
             event.getChannel().sendMessageEmbeds(builder.build())
                     .queue(message -> ids.put(event.getInteraction().getUser().getIdLong(), message.getIdLong()));
@@ -153,9 +149,8 @@ public class EmbedCommand extends ListenerAdapter {
                 EmbedBuilder builder = new EmbedBuilder();
                 builder.setFooter("Powered by ClusterNode.net", "https://cdn.clusternode.net/image/s/clusternode_net.png");
                 builder.setDescription("Role has been removed.");
-                builder.setColor(Color.cyan);
-                builder.setAuthor("ELIZON.");
-                builder.setThumbnail((String) new Hooks().fromFile("thumbnailURL"));
+                builder.setColor(Color.yellow);
+                builder.setAuthor((String) new Hooks().fromFile("author"));
                 event.replyEmbeds(builder.build())
                         .setEphemeral(true)
                         .queue();
@@ -164,9 +159,8 @@ public class EmbedCommand extends ListenerAdapter {
                 EmbedBuilder builder = new EmbedBuilder();
                 builder.setFooter("Powered by ClusterNode.net", "https://cdn.clusternode.net/image/s/clusternode_net.png");
                 builder.setDescription("Role has been added.");
-                builder.setColor(Color.cyan);
-                builder.setAuthor("ELIZON.");
-                builder.setThumbnail((String) new Hooks().fromFile("thumbnailURL"));
+                builder.setColor(Color.yellow);
+                builder.setAuthor((String) new Hooks().fromFile("author"));
                 event.replyEmbeds(builder.build())
                         .setEphemeral(true)
                         .queue();
